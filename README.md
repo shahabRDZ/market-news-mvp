@@ -129,6 +129,13 @@ ml/               # pure algorithms, swappable for FinBERT / XGBoost later
 
 A GitHub Actions workflow is staged at `.github/workflows.example/ci.yml`. Run `gh auth refresh -h github.com -s workflow` once, then `git mv .github/workflows.example .github/workflows && git commit -am "enable CI" && git push`.
 
+## Accessibility
+
+- **Plain English mode**: a header toggle replaces every number on screen with a human label ("Overbought (cool-down likely)" instead of "RSI 72").
+- **Persian localization**: full UI in فارسی with automatic RTL layout; toggle in the header.
+- **Tooltips on jargon**: every technical term has a one-line explainer on hover (RSI, MA, sentiment, impact, stress, etc.).
+- **Today's Brief**: a 3-sentence plain-English card at the top of the dashboard, auto-generated from mood + latest driver + next event. Refreshes every minute.
+
 ## Disclaimer
 
 Informational and educational use only. MNI does not provide investment advice. Probabilistic output may be wrong. Do not make financial decisions based solely on MNI output.

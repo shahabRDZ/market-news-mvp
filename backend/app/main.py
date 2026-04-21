@@ -8,7 +8,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import select
 
-from .api import api_keys, assets, auth, billing, events, features, intel, market, mood, news, signal, v1, watchlist, ws
+from .api import api_keys, assets, auth, billing, brief, events, features, intel, market, mood, news, signal, v1, watchlist, ws
 from .config import settings
 from .db import Base, SessionLocal, engine
 from . import db_migrate
@@ -105,6 +105,7 @@ app.include_router(news.router)
 app.include_router(market.router)
 app.include_router(signal.router)
 app.include_router(mood.router)
+app.include_router(brief.router)
 app.include_router(events.router)
 app.include_router(intel.router)
 app.include_router(features.router)

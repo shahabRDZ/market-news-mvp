@@ -1,4 +1,6 @@
 import type { NewsItem } from "../types";
+import { useI18n } from "../i18n";
+import { Tooltip } from "./Tooltip";
 
 const IMPACT_COLOR: Record<string, string> = {
   HIGH: "text-warn",
@@ -17,9 +19,12 @@ function timeAgo(iso: string): string {
 }
 
 export function NewsList({ items }: { items: NewsItem[] }) {
+  const { t } = useI18n();
   if (items.length === 0) {
-    return <div className="text-text_muted text-sm">Waiting for news...</div>;
+    return <div className="text-text_muted text-sm">{t("news_waiting")}</div>;
   }
+  const impactLabel = (imp: string) =>
+    imp === "HIGH" ? t("news_impact_high") : imp === "MED" ? t("news_impact_med") : t("news_impact_low");
   return (
     <ul className="divide-y divide-subtle">
       {items.map((n) => {
@@ -28,7 +33,9 @@ export function NewsList({ items }: { items: NewsItem[] }) {
         return (
           <li key={n.id} className="py-3">
             <div className="flex items-center gap-2 text-xs">
-              <span className={`${IMPACT_COLOR[n.impact] || ""} font-medium`}>{n.impact}</span>
+              <Tooltip content={t("tip_impact")}>
+                <span className={`${IMPACT_COLOR[n.impact] || ""} font-medium`}>{impactLabel(n.impact)}</span>
+              </Tooltip>
               <span className="text-text_muted">{timeAgo(n.published_at)}</span>
               <span className="text-text_muted">·</span>
               <span className="text-text_muted">{n.source}</span>

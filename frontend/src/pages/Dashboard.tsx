@@ -4,6 +4,8 @@ import { AssetCard } from "../components/AssetCard";
 import { EventTimeline } from "../components/EventTimeline";
 import { MarketMoodBanner } from "../components/MarketMoodBanner";
 import { NewsList } from "../components/NewsList";
+import { TodaysBriefCard } from "../components/TodaysBriefCard";
+import { useI18n } from "../i18n";
 import {
   fetchAssets,
   fetchEvents,
@@ -33,6 +35,7 @@ type AssetState = {
 
 export function Dashboard() {
   const { user } = useAuth();
+  const { t } = useI18n();
   const [assets, setAssets] = useState<AssetOut[]>([]);
   const [byAsset, setByAsset] = useState<Record<string, AssetState>>({});
   const [news, setNews] = useState<NewsItem[]>([]);
@@ -106,13 +109,15 @@ export function Dashboard() {
         </div>
         <div className="text-xs text-text_muted">
           {user ? (
-            <span className="mr-3">
+            <span className="me-3">
               plan: <span className="text-text_primary capitalize">{user.plan}</span>
             </span>
           ) : null}
-          {connected ? "live" : "polling"} · updated {secondsAgo}s ago
+          {connected ? t("status_live") : t("status_polling")} · {t("status_updated", { n: secondsAgo })}
         </div>
       </div>
+
+      <TodaysBriefCard />
 
       <MarketMoodBanner mood={mood} />
 
