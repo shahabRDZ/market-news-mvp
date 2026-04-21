@@ -1,0 +1,27 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html, body, #root {
+  height: 100%;
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+.num {
+  font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+@keyframes flash-up {
+  0%   { color: #2ED3A7; }
+  100% { color: #E6EAF0; }
+}
+@keyframes flash-down {
+  0%   { color: #F06868; }
+  100% { color: #E6EAF0; }
+}
+.flash-up { animation: flash-up 400ms ease-out; }
+.flash-down { animation: flash-down 400ms ease-out; }

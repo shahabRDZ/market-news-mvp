@@ -1,0 +1,17 @@
+[
+  {"source": "Reuters", "title": "US CPI rises 3.6% YoY vs 3.4% forecast, USD rallies", "url": "https://example.com/mock/cpi-hot"},
+  {"source": "Bloomberg", "title": "ECB Lagarde signals dovish stance, rates on hold", "url": "https://example.com/mock/ecb-hold"},
+  {"source": "FT", "title": "Fed minutes show officials wary of cutting rates too soon", "url": "https://example.com/mock/fed-minutes"},
+  {"source": "MarketWatch", "title": "Eurozone PMI beats expectations, growth surprise", "url": "https://example.com/mock/eu-pmi"},
+  {"source": "CNBC", "title": "Gold rallies as inflation fears return", "url": "https://example.com/mock/gold-rally"},
+  {"source": "Reuters", "title": "US jobless claims plunge, labor market resilient", "url": "https://example.com/mock/jobless"},
+  {"source": "WSJ", "title": "German factory orders crash, recession risk mounts", "url": "https://example.com/mock/germany-crash"},
+  {"source": "Bloomberg", "title": "Bitcoin surges past 62000 on ETF inflows", "url": "https://example.com/mock/btc-surge"},
+  {"source": "FT", "title": "EUR/USD bearish as Fed hawkish tone returns", "url": "https://example.com/mock/eurusd-bearish"},
+  {"source": "Reuters", "title": "Dovish surprise from BoE, GBP weakens", "url": "https://example.com/mock/boe-dovish"},
+  {"source": "MarketWatch", "title": "US retail sales miss, growth concerns weigh on USD", "url": "https://example.com/mock/retail-miss"},
+  {"source": "CNBC", "title": "Eurozone inflation cools, supportive for EUR bulls", "url": "https://example.com/mock/eu-inflation-cool"},
+  {"source": "Reuters", "title": "Oil prices rally on Middle East tensions", "url": "https://example.com/mock/oil-rally"},
+  {"source": "Bloomberg", "title": "Fed hikes rates 25bps, hawkish forward guidance", "url": "https://example.com/mock/fed-hike"},
+  {"source": "FT", "title": "ECB cuts rates 25bps, EUR weakens against USD", "url": "https://example.com/mock/ecb-cut"}
+]

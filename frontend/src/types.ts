@@ -1,0 +1,51 @@
+export type NewsItem = {
+  id: number;
+  source: string;
+  title: string;
+  url: string;
+  published_at: string;
+  sentiment: number;
+  impact: "LOW" | "MED" | "HIGH";
+};
+
+export type Candle = {
+  ts: string;
+  o: number;
+  h: number;
+  l: number;
+  c: number;
+  v: number;
+};
+
+export type Indicators = {
+  rsi: number;
+  ma20: number;
+  ma50: number;
+  trend: "up" | "down" | "flat";
+};
+
+export type MarketResponse = {
+  asset: string;
+  timeframe: string;
+  candles: Candle[];
+  indicators: Indicators | null;
+};
+
+export type Probabilities = { up: number; down: number; neutral: number };
+
+export type SignalResponse = {
+  asset: string;
+  ts: string;
+  probabilities: Probabilities;
+  direction: "UP" | "DOWN" | "NEUTRAL";
+  sentiment_score: number;
+  technical_score: number;
+  impact_strength: "LOW" | "MED" | "HIGH";
+  reason: string;
+};
+
+export type WsFrame =
+  | { type: "hello"; payload: { version: number } }
+  | { type: "ping" }
+  | { type: "news.new"; asset: string; payload: NewsItem }
+  | { type: "signal.updated"; asset: string; payload: SignalResponse };
