@@ -10,6 +10,7 @@ from sqlalchemy import select
 from .api import api_keys, assets, auth, billing, events, features, intel, market, mood, news, signal, v1, watchlist, ws
 from .config import settings
 from .db import Base, SessionLocal, engine
+from . import db_migrate
 from .models import Asset
 from .services.events_fetcher import seed_events
 from .workers.scheduler import TRACKED_ASSETS, build_scheduler, job_fetch_market, job_fetch_news
@@ -30,6 +31,7 @@ def _seed_assets() -> None:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     Base.metadata.create_all(bind=engine)
+    db_migrate.run()
     _seed_assets()
     with SessionLocal() as db:
         seed_events(db)
