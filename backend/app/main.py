@@ -62,6 +62,24 @@ app.add_middleware(
 )
 
 
+@app.get("/")
+def index() -> dict:
+    return {
+        "name": "Market News Intelligence API",
+        "version": app.version,
+        "docs": "/docs",
+        "healthz": "/healthz",
+        "dashboard_endpoints": [
+            "/assets", "/news", "/market", "/signal", "/mood", "/events",
+            "/intel", "/intel/replay",
+        ],
+        "features": "/features/*",
+        "auth_endpoints": ["/auth/register", "/auth/login", "/auth/me"],
+        "public_api": ["/v1/assets", "/v1/news", "/v1/signal"],
+        "websocket": "/realtime",
+    }
+
+
 @app.get("/healthz")
 def healthz() -> dict:
     return {"ok": True, "mock": settings.use_mock, "version": app.version}
