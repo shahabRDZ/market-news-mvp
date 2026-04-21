@@ -1,4 +1,4 @@
-import type { MarketResponse, NewsItem, SignalResponse } from "../types";
+import type { AssetOut, EconomicEvent, MarketResponse, MoodResponse, NewsItem, SignalResponse } from "../types";
 
 const BASE = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
@@ -18,6 +18,18 @@ export function fetchMarket(asset = "EURUSD", timeframe = "15m", limit = 96) {
 
 export function fetchSignal(asset = "EURUSD") {
   return getJSON<SignalResponse>(`/signal?asset=${asset}`);
+}
+
+export function fetchAssets() {
+  return getJSON<{ items: AssetOut[] }>(`/assets`);
+}
+
+export function fetchMood() {
+  return getJSON<MoodResponse>(`/mood`);
+}
+
+export function fetchEvents(hours = 48) {
+  return getJSON<{ items: EconomicEvent[] }>(`/events?hours=${hours}`);
 }
 
 export const WS_URL = (() => {

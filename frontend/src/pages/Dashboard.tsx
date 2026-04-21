@@ -1,39 +1,72 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AssetCard } from "../components/AssetCard";
+import { EventTimeline } from "../components/EventTimeline";
+import { MarketMoodBanner } from "../components/MarketMoodBanner";
 import { NewsList } from "../components/NewsList";
-import { fetchMarket, fetchNews, fetchSignal } from "../api/client";
+import {
+  fetchAssets,
+  fetchEvents,
+  fetchMarket,
+  fetchMood,
+  fetchNews,
+  fetchSignal,
+} from "../api/client";
 import { useRealtime } from "../api/useRealtime";
 import { useAuth } from "../auth/AuthContext";
-import type { Candle, Indicators, NewsItem, SignalResponse, WsFrame } from "../types";
+import type {
+  AssetOut,
+  Candle,
+  EconomicEvent,
+  Indicators,
+  MoodResponse,
+  NewsItem,
+  SignalResponse,
+  WsFrame,
+} from "../types";
 
-const ASSET = "EURUSD";
+type AssetState = {
+  candles: Candle[];
+  indicators: Indicators | null;
+  signal: SignalResponse | null;
+};
 
 export function Dashboard() {
   const { user } = useAuth();
-  const [candles, setCandles] = useState<Candle[]>([]);
-  const [indicators, setIndicators] = useState<Indicators | null>(null);
-  const [signal, setSignal] = useState<SignalResponse | null>(null);
+  const [assets, setAssets] = useState<AssetOut[]>([]);
+  const [byAsset, setByAsset] = useState<Record<string, AssetState>>({});
   const [news, setNews] = useState<NewsItem[]>([]);
+  const [mood, setMood] = useState<MoodResponse | null>(null);
+  const [events, setEvents] = useState<EconomicEvent[]>([]);
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
   const [connected, setConnected] = useState(false);
   const pollRef = useRef<number | undefined>(undefined);
 
+  const loadAsset = useCallback(async (symbol: string) => {
+    const [m, s] = await Promise.all([fetchMarket(symbol), fetchSignal(symbol)]);
+    return { symbol, state: { candles: m.candles, indicators: m.indicators, signal: s } };
+  }, []);
+
   const loadAll = useCallback(async () => {
     try {
-      const [m, s, n] = await Promise.all([
-        fetchMarket(ASSET),
-        fetchSignal(ASSET),
-        fetchNews(ASSET, 10),
+      const assetsResp = await fetchAssets();
+      setAssets(assetsResp.items);
+      const [perAsset, n, mo, ev] = await Promise.all([
+        Promise.all(assetsResp.items.map((a) => loadAsset(a.symbol))),
+        fetchNews("EURUSD", 10),
+        fetchMood(),
+        fetchEvents(48),
       ]);
-      setCandles(m.candles);
-      setIndicators(m.indicators);
-      setSignal(s);
+      const nextByAsset: Record<string, AssetState> = {};
+      for (const r of perAsset) nextByAsset[r.symbol] = r.state;
+      setByAsset(nextByAsset);
       setNews(n.items);
+      setMood(mo);
+      setEvents(ev.items);
       setLastUpdate(new Date());
     } catch {
       // keep previous state on transient errors
     }
-  }, []);
+  }, [loadAsset]);
 
   useEffect(() => {
     loadAll();
@@ -52,7 +85,11 @@ export function Dashboard() {
         return [frame.payload, ...prev].slice(0, 10);
       });
     } else if (frame.type === "signal.updated") {
-      setSignal(frame.payload);
+      setByAsset((prev) => {
+        const sym = frame.asset;
+        const current = prev[sym] || { candles: [], indicators: null, signal: null };
+        return { ...prev, [sym]: { ...current, signal: frame.payload } };
+      });
     }
   }, []);
   useRealtime(onFrame);
@@ -60,11 +97,11 @@ export function Dashboard() {
   const secondsAgo = Math.max(0, Math.floor((Date.now() - lastUpdate.getTime()) / 1000));
 
   return (
-    <main className="max-w-6xl mx-auto px-4 md:px-6 py-6">
-      <div className="flex items-center justify-between mb-6">
+    <main className="max-w-6xl mx-auto px-4 md:px-6 py-6 space-y-6">
+      <div className="flex items-center justify-between">
         <div>
           <div className="text-text_muted text-xs">live demo</div>
-          <h1 className="text-xl font-semibold tracking-tight">{ASSET}</h1>
+          <h1 className="text-xl font-semibold tracking-tight">Market Intelligence</h1>
         </div>
         <div className="text-xs text-text_muted">
           {user ? (
@@ -76,17 +113,36 @@ export function Dashboard() {
         </div>
       </div>
 
+      <MarketMoodBanner mood={mood} />
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2">
-          <AssetCard asset={ASSET} candles={candles} indicators={indicators} signal={signal} />
+        <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+          {assets.map((a) => {
+            const st = byAsset[a.symbol];
+            return (
+              <AssetCard
+                key={a.symbol}
+                asset={a.symbol}
+                candles={st?.candles || []}
+                indicators={st?.indicators || null}
+                signal={st?.signal || null}
+              />
+            );
+          })}
         </div>
-        <div className="bg-surface border border-subtle rounded-lg p-5">
-          <div className="text-text_secondary text-xs mb-3">Latest News</div>
-          <NewsList items={news} />
+        <div className="space-y-6">
+          <div className="bg-surface border border-subtle rounded-lg p-5">
+            <div className="text-text_secondary text-xs mb-3">Latest News</div>
+            <NewsList items={news} />
+          </div>
+          <div className="bg-surface border border-subtle rounded-lg p-5">
+            <div className="text-text_secondary text-xs mb-3">Coming Soon</div>
+            <EventTimeline events={events} />
+          </div>
         </div>
       </div>
 
-      <p className="text-text_muted text-[11px] mt-10 leading-relaxed">
+      <p className="text-text_muted text-[11px] leading-relaxed">
         Informational only. Not investment advice. Probabilistic output may be wrong.
       </p>
     </main>

@@ -25,5 +25,17 @@ services:
     depends_on:
       - backend
 
+  # Optional cache / pubsub. Enable with: docker compose --profile cache up
+  redis:
+    image: redis:7-alpine
+    container_name: mni_redis
+    profiles: ["cache"]
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - mni_redis:/data
+
 volumes:
   mni_data:
+  mni_redis:

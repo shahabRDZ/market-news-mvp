@@ -5,12 +5,16 @@ A SaaS-ready prototype that ingests financial news, scores sentiment, combines i
 ## What's inside
 
 - Real-time ingestion of news (NewsAPI or seeded mock) and market data (yfinance).
+- Multi-asset coverage out of the box: EUR/USD, BTC/USD, Gold.
 - VADER + finance lexicon sentiment, RSI / MA / trend, blended probabilistic signal.
+- Aggregated **Market Mood** (Risk-On / Risk-Off / Mixed) across tracked assets.
+- **Economic calendar** with anticipation pressure score per upcoming event.
 - FastAPI backend with WebSocket push and polling fallback.
 - React + Vite + Tailwind frontend: landing, pricing, login, register, dashboard, account.
 - JWT user auth with bcrypt password hashing.
 - Plan tiers (Free / Pro / Premium / Team / API) with feature gating.
 - Hashed API keys with per-plan rate limits, surfaced via versioned `/v1` endpoints.
+- Optional Redis container via `docker compose --profile cache up` for the cache/pubsub upgrade path.
 
 ## Stack
 
@@ -67,9 +71,12 @@ npm run dev
 
 **Dashboard (open):**
 - `GET /healthz`
+- `GET /assets`
 - `GET /news?asset=EURUSD&limit=20`
 - `GET /market?asset=EURUSD&timeframe=15m&limit=96`
 - `GET /signal?asset=EURUSD`
+- `GET /mood`
+- `GET /events?hours=48&importance=1`
 - `WS  /realtime`
 
 **SaaS (Bearer JWT):**

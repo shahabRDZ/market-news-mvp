@@ -105,9 +105,10 @@ async def job_fetch_news(asset_symbol: str = "EURUSD") -> None:
                     },
                 }
             )
-        payload = await loop.run_in_executor(None, _recompute_signal_sync, asset_symbol)
-        if payload:
-            await broadcaster.publish({"type": "signal.updated", "asset": asset_symbol, "payload": payload})
+        for sym in ("EURUSD", "BTCUSD", "XAUUSD"):
+            payload = await loop.run_in_executor(None, _recompute_signal_sync, sym)
+            if payload:
+                await broadcaster.publish({"type": "signal.updated", "asset": sym, "payload": payload})
 
 
 async def job_fetch_market(asset_symbol: str = "EURUSD") -> None:
@@ -130,8 +131,24 @@ async def job_fetch_market(asset_symbol: str = "EURUSD") -> None:
             await broadcaster.publish({"type": "signal.updated", "asset": asset_symbol, "payload": payload})
 
 
+TRACKED_ASSETS = ["EURUSD", "BTCUSD", "XAUUSD"]
+
+
+async def job_fetch_news_all() -> None:
+    # News is global; we fetch once and tag EURUSD for now. Other assets reuse the pool.
+    await job_fetch_news("EURUSD")
+
+
+async def job_fetch_market_all() -> None:
+    for sym in TRACKED_ASSETS:
+        try:
+            await job_fetch_market(sym)
+        except Exception as exc:
+            log.warning("market job failed for %s: %s", sym, exc)
+
+
 def build_scheduler() -> AsyncIOScheduler:
     scheduler = AsyncIOScheduler()
-    scheduler.add_job(job_fetch_news, "interval", seconds=settings.POLL_NEWS_SECONDS, id="news")
-    scheduler.add_job(job_fetch_market, "interval", seconds=settings.POLL_MARKET_SECONDS, id="market")
+    scheduler.add_job(job_fetch_news_all, "interval", seconds=settings.POLL_NEWS_SECONDS, id="news")
+    scheduler.add_job(job_fetch_market_all, "interval", seconds=settings.POLL_MARKET_SECONDS, id="market")
     return scheduler

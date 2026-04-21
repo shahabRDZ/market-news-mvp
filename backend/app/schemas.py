@@ -46,6 +46,38 @@ class Probabilities(BaseModel):
     neutral: float
 
 
+class EconomicEventOut(BaseModel):
+    id: int
+    kind: str
+    country: str
+    importance: int
+    event_time: datetime
+    forecast: float | None = None
+    previous: float | None = None
+    actual: float | None = None
+    affected_assets: list[str] = []
+    anticipation: int = 0
+
+
+class EventsResponse(BaseModel):
+    items: list[EconomicEventOut]
+
+
+class AssetOut(BaseModel):
+    symbol: str
+    name: str
+
+
+class AssetsResponse(BaseModel):
+    items: list[AssetOut]
+
+
+class MoodResponse(BaseModel):
+    label: str
+    score: int
+    summary: str
+
+
 class SignalResponse(BaseModel):
     asset: str
     ts: datetime

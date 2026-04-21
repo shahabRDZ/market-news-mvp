@@ -7,11 +7,12 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import select
 
-from .api import api_keys, auth, billing, market, news, signal, v1, watchlist, ws
+from .api import api_keys, assets, auth, billing, events, market, mood, news, signal, v1, watchlist, ws
 from .config import settings
 from .db import Base, SessionLocal, engine
 from .models import Asset
-from .workers.scheduler import build_scheduler, job_fetch_market, job_fetch_news
+from .services.events_fetcher import seed_events
+from .workers.scheduler import TRACKED_ASSETS, build_scheduler, job_fetch_market, job_fetch_news
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 
@@ -30,16 +31,19 @@ def _seed_assets() -> None:
 async def lifespan(app: FastAPI):
     Base.metadata.create_all(bind=engine)
     _seed_assets()
+    with SessionLocal() as db:
+        seed_events(db)
     scheduler = build_scheduler()
     scheduler.start()
     try:
         await job_fetch_news("EURUSD")
     except Exception as exc:
         logging.warning("initial news fetch failed: %s", exc)
-    try:
-        await job_fetch_market("EURUSD")
-    except Exception as exc:
-        logging.warning("initial market fetch failed: %s", exc)
+    for sym in TRACKED_ASSETS:
+        try:
+            await job_fetch_market(sym)
+        except Exception as exc:
+            logging.warning("initial market fetch for %s failed: %s", sym, exc)
     app.state.scheduler = scheduler
     try:
         yield
@@ -64,9 +68,12 @@ def healthz() -> dict:
 
 
 # Dashboard endpoints (session auth is optional; all readable anonymously for MVP).
+app.include_router(assets.router)
 app.include_router(news.router)
 app.include_router(market.router)
 app.include_router(signal.router)
+app.include_router(mood.router)
+app.include_router(events.router)
 app.include_router(ws.router)
 
 # SaaS endpoints (session-authenticated).

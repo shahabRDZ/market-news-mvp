@@ -44,6 +44,27 @@ export type SignalResponse = {
   reason: string;
 };
 
+export type EconomicEvent = {
+  id: number;
+  kind: string;
+  country: string;
+  importance: 1 | 2 | 3;
+  event_time: string;
+  forecast: number | null;
+  previous: number | null;
+  actual: number | null;
+  affected_assets: string[];
+  anticipation: number;
+};
+
+export type MoodResponse = {
+  label: "Risk-On" | "Risk-Off" | "Mixed";
+  score: number;
+  summary: string;
+};
+
+export type AssetOut = { symbol: string; name: string };
+
 export type WsFrame =
   | { type: "hello"; payload: { version: number } }
   | { type: "ping" }

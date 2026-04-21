@@ -71,6 +71,20 @@ class Signal(Base):
     asset = relationship("Asset", back_populates="signals")
 
 
+class EconomicEvent(Base):
+    __tablename__ = "economic_events"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    kind: Mapped[str] = mapped_column(String(64), index=True)
+    country: Mapped[str] = mapped_column(String(8), index=True)
+    importance: Mapped[int] = mapped_column(Integer, default=1)
+    event_time: Mapped[datetime] = mapped_column(DateTime, index=True)
+    forecast: Mapped[float | None] = mapped_column(Float, nullable=True)
+    previous: Mapped[float | None] = mapped_column(Float, nullable=True)
+    actual: Mapped[float | None] = mapped_column(Float, nullable=True)
+    affected_assets: Mapped[list] = mapped_column(JSON, default=list)
+
+
 class User(Base):
     __tablename__ = "users"
 

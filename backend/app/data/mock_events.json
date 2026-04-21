@@ -1,0 +1,10 @@
+[
+  {"kind": "CPI", "country": "US", "importance": 3, "offset_hours": 2, "forecast": 3.4, "previous": 3.5, "affected": ["USD", "EURUSD", "XAUUSD", "BTCUSD"]},
+  {"kind": "NFP", "country": "US", "importance": 3, "offset_hours": 26, "forecast": 180000, "previous": 206000, "affected": ["USD", "EURUSD", "XAUUSD"]},
+  {"kind": "ECB Rate Decision", "country": "EU", "importance": 3, "offset_hours": 50, "forecast": 4.25, "previous": 4.25, "affected": ["EUR", "EURUSD"]},
+  {"kind": "FOMC Minutes", "country": "US", "importance": 2, "offset_hours": 8, "forecast": null, "previous": null, "affected": ["USD", "EURUSD", "XAUUSD", "BTCUSD"]},
+  {"kind": "Retail Sales", "country": "US", "importance": 2, "offset_hours": 32, "forecast": 0.3, "previous": 0.1, "affected": ["USD", "EURUSD"]},
+  {"kind": "GDP QoQ", "country": "EU", "importance": 2, "offset_hours": 72, "forecast": 0.2, "previous": 0.3, "affected": ["EUR", "EURUSD"]},
+  {"kind": "Unemployment Rate", "country": "US", "importance": 2, "offset_hours": 26, "forecast": 4.1, "previous": 4.1, "affected": ["USD", "EURUSD"]},
+  {"kind": "PMI Manufacturing", "country": "EU", "importance": 1, "offset_hours": 14, "forecast": 49.8, "previous": 49.5, "affected": ["EUR", "EURUSD"]}
+]
