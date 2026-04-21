@@ -13,6 +13,7 @@ from ..models import Asset, Candle
 SYMBOL_MAP = {
     "EURUSD": "EURUSD=X",
     "BTCUSD": "BTC-USD",
+    "ETHUSD": "ETH-USD",
     "XAUUSD": "GC=F",
 }
 

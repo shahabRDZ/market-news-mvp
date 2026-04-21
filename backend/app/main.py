@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import logging
 from contextlib import asynccontextmanager
 
@@ -12,6 +13,7 @@ from .config import settings
 from .db import Base, SessionLocal, engine
 from . import db_migrate
 from .models import Asset
+from .services import crypto_ws
 from .services.events_fetcher import seed_events
 from .workers.scheduler import TRACKED_ASSETS, build_scheduler, job_fetch_market, job_fetch_news
 
@@ -20,7 +22,12 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name
 
 def _seed_assets() -> None:
     with SessionLocal() as db:
-        defaults = [("EURUSD", "EUR/USD"), ("BTCUSD", "Bitcoin / USD"), ("XAUUSD", "Gold / USD")]
+        defaults = [
+            ("EURUSD", "EUR/USD"),
+            ("BTCUSD", "Bitcoin / USD"),
+            ("ETHUSD", "Ethereum / USD"),
+            ("XAUUSD", "Gold / USD"),
+        ]
         for sym, name in defaults:
             existing = db.execute(select(Asset).where(Asset.symbol == sym)).scalar_one_or_none()
             if existing is None:
@@ -47,10 +54,15 @@ async def lifespan(app: FastAPI):
         except Exception as exc:
             logging.warning("initial market fetch for %s failed: %s", sym, exc)
     app.state.scheduler = scheduler
+
+    # Start real-time crypto WebSocket (Coinbase with Binance fallback) for BTC/ETH.
+    crypto_ws.start(asyncio.get_running_loop())
+
     try:
         yield
     finally:
         scheduler.shutdown(wait=False)
+        await crypto_ws.stop()
 
 
 app = FastAPI(title="Market News Intelligence", version="0.2.0", lifespan=lifespan)

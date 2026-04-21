@@ -4,8 +4,9 @@ A SaaS-ready prototype that ingests financial news, scores sentiment, combines i
 
 ## What's inside
 
-- Real-time ingestion of news (NewsAPI or seeded mock) and market data (yfinance).
-- Multi-asset coverage out of the box: EUR/USD, BTC/USD, Gold.
+- **Real news** via RSS (Reuters, CNBC, ForexLive, Investing, MarketWatch, CoinDesk, Yahoo, FXStreet) with zero API key. NewsAPI kicks in when `NEWSAPI_KEY` is set.
+- **Live crypto prices** every 5s via Coinbase/Binance WebSocket, with Yahoo Finance chart-endpoint fast-poll fallback when exchange WS is blocked.
+- Multi-asset coverage out of the box: EUR/USD, BTC/USD, ETH/USD, Gold.
 - VADER + finance lexicon sentiment, RSI / MA / trend, blended probabilistic signal.
 - Aggregated **Market Mood** (Risk-On / Risk-Off / Mixed) across tracked assets.
 - **Economic calendar** with anticipation pressure score per upcoming event.

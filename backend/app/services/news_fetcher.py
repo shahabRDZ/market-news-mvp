@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 
 from ..config import settings
 from ..models import Asset, News
+from . import rss_fetcher
 from .sentiment import count_keywords, impact_class, score
 
 MOCK_PATH = Path(__file__).resolve().parent.parent / "data" / "mock_news.json"
@@ -78,9 +79,20 @@ def fetch_and_store(db: Session, asset_symbol: str = "EURUSD") -> list[News]:
         return []
 
     query = "EUR OR USD OR ECB OR Fed OR CPI OR inflation OR rate"
-    try:
-        raw_items = _load_mock() if settings.use_mock else _fetch_from_newsapi(query)
-    except Exception:
+    raw_items: list[dict[str, Any]] = []
+    if settings.NEWSAPI_KEY:
+        try:
+            raw_items = _fetch_from_newsapi(query)
+        except Exception:
+            raw_items = []
+    if not raw_items:
+        # No key, or NewsAPI failed. Try real RSS feeds (no key needed).
+        try:
+            raw_items = rss_fetcher.fetch_all()
+        except Exception:
+            raw_items = []
+    if not raw_items:
+        # Last resort: static mock so UI always has something.
         raw_items = _load_mock()
 
     inserted: list[News] = []

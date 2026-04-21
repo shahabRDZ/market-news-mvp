@@ -106,7 +106,7 @@ async def job_fetch_news(asset_symbol: str = "EURUSD") -> None:
                     },
                 }
             )
-        for sym in ("EURUSD", "BTCUSD", "XAUUSD"):
+        for sym in TRACKED_ASSETS:
             payload = await loop.run_in_executor(None, _recompute_signal_sync, sym)
             if payload:
                 await broadcaster.publish({"type": "signal.updated", "asset": sym, "payload": payload})
@@ -132,7 +132,7 @@ async def job_fetch_market(asset_symbol: str = "EURUSD") -> None:
             await broadcaster.publish({"type": "signal.updated", "asset": asset_symbol, "payload": payload})
 
 
-TRACKED_ASSETS = ["EURUSD", "BTCUSD", "XAUUSD"]
+TRACKED_ASSETS = ["EURUSD", "BTCUSD", "ETHUSD", "XAUUSD"]
 
 
 async def job_fetch_news_all() -> None:
