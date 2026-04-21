@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { AdvancedIntelPanel } from "../components/AdvancedIntelPanel";
 import { AssetCard } from "../components/AssetCard";
 import { EventTimeline } from "../components/EventTimeline";
 import { MarketMoodBanner } from "../components/MarketMoodBanner";
@@ -114,6 +115,8 @@ export function Dashboard() {
       </div>
 
       <MarketMoodBanner mood={mood} />
+
+      {assets[0] && <AdvancedIntelPanel asset={assets[0].symbol} />}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">

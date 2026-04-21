@@ -1,4 +1,12 @@
-import type { AssetOut, EconomicEvent, MarketResponse, MoodResponse, NewsItem, SignalResponse } from "../types";
+import type {
+  AssetOut,
+  EconomicEvent,
+  IntelPayload,
+  MarketResponse,
+  MoodResponse,
+  NewsItem,
+  SignalResponse,
+} from "../types";
 
 const BASE = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
@@ -30,6 +38,25 @@ export function fetchMood() {
 
 export function fetchEvents(hours = 48) {
   return getJSON<{ items: EconomicEvent[] }>(`/events?hours=${hours}`);
+}
+
+export function fetchIntel(asset = "EURUSD") {
+  return getJSON<IntelPayload>(`/intel?asset=${asset}`);
+}
+
+export function fetchReplay(asset = "EURUSD") {
+  return getJSON<{
+    target: { id: number; title: string; published_at: string; sentiment: number; impact: string } | null;
+    outcomes: {
+      news_id: number;
+      title: string;
+      published_at: string;
+      similarity: number;
+      ret_15m: number | null;
+      ret_1h: number | null;
+      ret_4h: number | null;
+    }[];
+  }>(`/intel/replay?asset=${asset}`);
 }
 
 export const WS_URL = (() => {

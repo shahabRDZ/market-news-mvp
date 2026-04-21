@@ -7,7 +7,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import select
 
-from .api import api_keys, assets, auth, billing, events, market, mood, news, signal, v1, watchlist, ws
+from .api import api_keys, assets, auth, billing, events, intel, market, mood, news, signal, v1, watchlist, ws
 from .config import settings
 from .db import Base, SessionLocal, engine
 from .models import Asset
@@ -74,6 +74,7 @@ app.include_router(market.router)
 app.include_router(signal.router)
 app.include_router(mood.router)
 app.include_router(events.router)
+app.include_router(intel.router)
 app.include_router(ws.router)
 
 # SaaS endpoints (session-authenticated).

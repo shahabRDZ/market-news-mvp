@@ -15,6 +15,13 @@ A SaaS-ready prototype that ingests financial news, scores sentiment, combines i
 - Plan tiers (Free / Pro / Premium / Team / API) with feature gating.
 - Hashed API keys with per-plan rate limits, surfaced via versioned `/v1` endpoints.
 - Optional Redis container via `docker compose --profile cache up` for the cache/pubsub upgrade path.
+- **Advanced intelligence layer** (rule-based, swappable with ML later):
+  - Pre-news stress via ATR compression + range tightening.
+  - Liquidity zones via swing-point clustering.
+  - Smart-money flow via volume z-score + wick / close-location analysis.
+  - Contradiction detector (news sentiment vs price return divergence).
+  - Pre-news volatility countdown with fake-move risk.
+  - News-reaction replay with similarity scoring against past events.
 
 ## Stack
 
@@ -77,6 +84,8 @@ npm run dev
 - `GET /signal?asset=EURUSD`
 - `GET /mood`
 - `GET /events?hours=48&importance=1`
+- `GET /intel?asset=EURUSD`
+- `GET /intel/replay?asset=EURUSD`
 - `WS  /realtime`
 
 **SaaS (Bearer JWT):**
