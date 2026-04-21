@@ -22,6 +22,12 @@ A SaaS-ready prototype that ingests financial news, scores sentiment, combines i
   - Contradiction detector (news sentiment vs price return divergence).
   - Pre-news volatility countdown with fake-move risk.
   - News-reaction replay with similarity scoring against past events.
+- **Unique features suite** (all live at `/features/*` and on the `/features` page):
+  - Time Machine, Narrative Tracker, Silence Detector
+  - Consensus Breaker, Correlation Break, Did-I-Miss digest
+  - Pattern Library, Confidence Calibration, Retail vs Institutional split
+  - Asset Personality, Paper Bet (tracked accuracy), News Markers
+  - Soft Push (tab badge), Contagion Map, Boring Day detector
 
 ## Stack
 

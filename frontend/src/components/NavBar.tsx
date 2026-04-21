@@ -14,6 +14,9 @@ export function NavBar() {
           <NavLink to="/dashboard" className={({ isActive }) => (isActive ? "text-text_primary" : "hover:text-text_primary")}>
             Dashboard
           </NavLink>
+          <NavLink to="/features" className={({ isActive }) => (isActive ? "text-text_primary" : "hover:text-text_primary")}>
+            Features
+          </NavLink>
           <NavLink to="/pricing" className={({ isActive }) => (isActive ? "text-text_primary" : "hover:text-text_primary")}>
             Pricing
           </NavLink>

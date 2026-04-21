@@ -13,6 +13,7 @@ from ..models import Asset, News, Signal
 from ..services import indicators as ind
 from ..services import market_fetcher, news_fetcher, signal_engine
 from ..services.broadcaster import broadcaster
+from ..services.features import bets as bets_svc
 
 log = logging.getLogger("scheduler")
 
@@ -147,8 +148,24 @@ async def job_fetch_market_all() -> None:
             log.warning("market job failed for %s: %s", sym, exc)
 
 
+async def job_resolve_bets() -> None:
+    loop = asyncio.get_running_loop()
+
+    def _work() -> int:
+        with SessionLocal() as db:
+            return bets_svc.resolve_due(db)
+
+    try:
+        resolved = await loop.run_in_executor(None, _work)
+        if resolved:
+            log.info("resolved %d paper bets", resolved)
+    except Exception as exc:
+        log.warning("bet resolution failed: %s", exc)
+
+
 def build_scheduler() -> AsyncIOScheduler:
     scheduler = AsyncIOScheduler()
     scheduler.add_job(job_fetch_news_all, "interval", seconds=settings.POLL_NEWS_SECONDS, id="news")
     scheduler.add_job(job_fetch_market_all, "interval", seconds=settings.POLL_MARKET_SECONDS, id="market")
+    scheduler.add_job(job_resolve_bets, "interval", seconds=120, id="bets")
     return scheduler

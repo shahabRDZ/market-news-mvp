@@ -94,9 +94,44 @@ class User(Base):
     plan: Mapped[str] = mapped_column(String(32), default="free")
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    last_seen_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
     api_keys = relationship("ApiKey", back_populates="user", cascade="all, delete-orphan")
     watchlist = relationship("WatchlistItem", back_populates="user", cascade="all, delete-orphan")
+    bets = relationship("PaperBet", back_populates="user", cascade="all, delete-orphan")
+    patterns = relationship("Pattern", back_populates="user", cascade="all, delete-orphan")
+
+
+class PaperBet(Base):
+    __tablename__ = "paper_bets"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    asset_symbol: Mapped[str] = mapped_column(String(32), index=True)
+    direction: Mapped[str] = mapped_column(String(8))
+    horizon_minutes: Mapped[int] = mapped_column(Integer, default=60)
+    placed_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, index=True)
+    resolve_at: Mapped[datetime] = mapped_column(DateTime, index=True)
+    placed_price: Mapped[float] = mapped_column(Float)
+    resolved: Mapped[bool] = mapped_column(Boolean, default=False)
+    correct: Mapped[bool | None] = mapped_column(Boolean, nullable=True)
+    realized_return: Mapped[float | None] = mapped_column(Float, nullable=True)
+
+    user = relationship("User", back_populates="bets")
+
+
+class Pattern(Base):
+    __tablename__ = "patterns"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    name: Mapped[str] = mapped_column(String(64))
+    rules: Mapped[dict] = mapped_column(JSON, default=dict)
+    active: Mapped[bool] = mapped_column(Boolean, default=True)
+    last_matched_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    user = relationship("User", back_populates="patterns")
 
 
 class ApiKey(Base):
