@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import JSON, DateTime, Float, ForeignKey, Integer, String, UniqueConstraint
+from sqlalchemy import JSON, Boolean, DateTime, Float, ForeignKey, Integer, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .db import Base
@@ -69,3 +69,44 @@ class Signal(Base):
     details: Mapped[dict] = mapped_column(JSON, default=dict)
 
     asset = relationship("Asset", back_populates="signals")
+
+
+class User(Base):
+    __tablename__ = "users"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    email: Mapped[str] = mapped_column(String(255), unique=True, index=True)
+    password_hash: Mapped[str] = mapped_column(String(255))
+    plan: Mapped[str] = mapped_column(String(32), default="free")
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    api_keys = relationship("ApiKey", back_populates="user", cascade="all, delete-orphan")
+    watchlist = relationship("WatchlistItem", back_populates="user", cascade="all, delete-orphan")
+
+
+class ApiKey(Base):
+    __tablename__ = "api_keys"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    name: Mapped[str] = mapped_column(String(64))
+    key_prefix: Mapped[str] = mapped_column(String(12), index=True)
+    key_hash: Mapped[str] = mapped_column(String(128), index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    last_used_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    revoked: Mapped[bool] = mapped_column(Boolean, default=False)
+
+    user = relationship("User", back_populates="api_keys")
+
+
+class WatchlistItem(Base):
+    __tablename__ = "watchlist"
+    __table_args__ = (UniqueConstraint("user_id", "asset_id", name="uq_watch_user_asset"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    asset_id: Mapped[int] = mapped_column(ForeignKey("assets.id"))
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    user = relationship("User", back_populates="watchlist")

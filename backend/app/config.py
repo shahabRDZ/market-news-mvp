@@ -8,6 +8,9 @@ class Settings(BaseSettings):
     POLL_NEWS_SECONDS: int = 60
     POLL_MARKET_SECONDS: int = 60
     ALLOWED_ORIGINS: str = "http://localhost:5173"
+    JWT_SECRET: str = "dev-insecure-change-me"
+    JWT_ALG: str = "HS256"
+    JWT_EXPIRE_HOURS: int = 168
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 

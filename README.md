@@ -1,31 +1,33 @@
-# Market News Intelligence MVP
+# Market News Intelligence
 
-A minimal, runnable prototype that ingests financial news, scores sentiment, combines it with basic technical indicators, and pushes a probabilistic direction (UP / DOWN / NEUTRAL) to a React dashboard over WebSocket.
+A SaaS-ready prototype that ingests financial news, scores sentiment, combines it with basic technical indicators, and delivers probabilistic market direction (UP / DOWN / NEUTRAL) to a React dashboard in real time. Now with auth, plan tiers, and a public developer API.
 
-## What it does
+## What's inside
 
-- Pulls news for EUR/USD from NewsAPI (or a built-in mock dataset when no key is set).
-- Pulls 15-minute OHLCV for EUR/USD from Yahoo Finance via `yfinance`.
-- Scores each headline with VADER plus a small finance lexicon boost.
-- Computes RSI(14), MA20, MA50 and a trend label.
-- Blends news sentiment and technical score into calibrated-ish UP / DOWN / NEUTRAL probabilities.
-- Streams updates to the browser over WebSocket with a polling fallback.
+- Real-time ingestion of news (NewsAPI or seeded mock) and market data (yfinance).
+- VADER + finance lexicon sentiment, RSI / MA / trend, blended probabilistic signal.
+- FastAPI backend with WebSocket push and polling fallback.
+- React + Vite + Tailwind frontend: landing, pricing, login, register, dashboard, account.
+- JWT user auth with bcrypt password hashing.
+- Plan tiers (Free / Pro / Premium / Team / API) with feature gating.
+- Hashed API keys with per-plan rate limits, surfaced via versioned `/v1` endpoints.
 
 ## Stack
 
 | Layer | Tech |
 |---|---|
-| Backend | FastAPI, SQLAlchemy, APScheduler, SQLite |
-| NLP | VADER + small finance lexicon |
+| Backend | FastAPI, SQLAlchemy 2, APScheduler, SQLite (Postgres-ready) |
+| Auth | JWT (PyJWT) + bcrypt + hashed API keys |
+| NLP | VADER + finance lexicon |
 | Market | yfinance |
-| Frontend | React + Vite + TypeScript + Tailwind |
+| Frontend | React 18 + Vite + TypeScript + Tailwind + react-router |
 | Charts | lightweight-charts |
 | Transport | REST + WebSocket |
 
 ## Quick start (Docker)
 
 ```bash
-cp .env.example .env   # optional: set NEWSAPI_KEY
+cp .env.example .env
 docker compose up --build
 ```
 
@@ -50,28 +52,60 @@ echo "VITE_API_URL=http://localhost:8000" > .env.local
 npm run dev
 ```
 
+## Try the SaaS flow
+
+1. Register at `/register`.
+2. Open `/pricing` and switch to Pro or Premium (MVP mode applies instantly without payment).
+3. Open `/account`, create an API key.
+4. Call the public API:
+   ```bash
+   curl -H "X-API-Key: mni_..." "http://localhost:8000/v1/signal?asset=EURUSD"
+   ```
+   Response includes `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Reset` headers.
+
 ## Endpoints
 
+**Dashboard (open):**
 - `GET /healthz`
 - `GET /news?asset=EURUSD&limit=20`
 - `GET /market?asset=EURUSD&timeframe=15m&limit=96`
 - `GET /signal?asset=EURUSD`
 - `WS  /realtime`
 
+**SaaS (Bearer JWT):**
+- `POST /auth/register`, `POST /auth/login`, `GET /auth/me`
+- `GET /billing/plans`, `POST /billing/select`
+- `GET /keys`, `POST /keys`, `DELETE /keys/{id}`
+- `GET /watchlist`, `POST /watchlist`, `DELETE /watchlist/{symbol}`
+
+**Public v1 API (X-API-Key):**
+- `GET /v1/assets`
+- `GET /v1/news?asset=&limit=`
+- `GET /v1/signal?asset=`
+
 ## Project layout
 
-See [docs](#project-layout) below and the folder comments in each service file.
-
 ```
-backend/   FastAPI app, services, workers
-frontend/  React dashboard
-ml/        Pure algorithms, free of DB imports
+backend/
+  app/
+    api/          # REST + WS routes (auth, billing, keys, watchlist, v1, ...)
+    services/     # sentiment, indicators, signal engine, plans, rate limiter
+    workers/      # APScheduler polling
+    models.py     # User, ApiKey, WatchlistItem, Asset, News, Candle, Signal
+    auth.py       # JWT, bcrypt, API-key auth deps
+frontend/
+  src/
+    auth/         # React auth context (JWT in localStorage)
+    api/          # fetch + WebSocket hooks
+    components/   # NavBar, AssetCard, NewsList, ProbabilityBar, ...
+    pages/        # Landing, Pricing, Login, Register, Account, Dashboard
+ml/               # pure algorithms, swappable for FinBERT / XGBoost later
 ```
 
 ## CI
 
-A GitHub Actions workflow is staged at `.github/workflows.example/ci.yml`. To activate it, run `gh auth refresh -h github.com -s workflow` once, then `git mv .github/workflows.example .github/workflows && git commit -m "enable CI" && git push`.
+A GitHub Actions workflow is staged at `.github/workflows.example/ci.yml`. Run `gh auth refresh -h github.com -s workflow` once, then `git mv .github/workflows.example .github/workflows && git commit -am "enable CI" && git push`.
 
-## Notes
+## Disclaimer
 
-This is an MVP. It is not a trading system. Probabilities are heuristic, not calibrated on real outcome data. See the original design docs for the production architecture.
+Informational and educational use only. MNI does not provide investment advice. Probabilistic output may be wrong. Do not make financial decisions based solely on MNI output.
