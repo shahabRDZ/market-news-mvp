@@ -37,7 +37,10 @@ def _seed_assets() -> None:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    Base.metadata.create_all(bind=engine)
+    # SQLite: auto-create tables for quick local dev.
+    # Postgres: Alembic owns the schema; run `alembic upgrade head` before start.
+    if engine.dialect.name == "sqlite":
+        Base.metadata.create_all(bind=engine)
     db_migrate.run()
     _seed_assets()
     with SessionLocal() as db:

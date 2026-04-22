@@ -34,7 +34,7 @@ A SaaS-ready prototype that ingests financial news, scores sentiment, combines i
 
 | Layer | Tech |
 |---|---|
-| Backend | FastAPI, SQLAlchemy 2, APScheduler, SQLite (Postgres-ready) |
+| Backend | FastAPI, SQLAlchemy 2, Alembic, APScheduler, Postgres (SQLite fallback) |
 | Auth | JWT (PyJWT) + bcrypt + hashed API keys |
 | NLP | VADER + finance lexicon |
 | Market | yfinance |
@@ -53,14 +53,24 @@ Open http://localhost:5173
 
 ## Quick start (manual)
 
-Backend:
+Backend (Postgres):
 ```bash
 cd backend
 python -m venv .venv && source .venv/bin/activate
 pip install -e .
-cp ../.env.example .env
+cp ../.env.example .env           # edit DATABASE_URL if not using docker's db
+alembic upgrade head
 uvicorn app.main:app --reload --port 8000
 ```
+
+Backend (SQLite fallback for quick local hacking):
+```bash
+cd backend
+python -m venv .venv && source .venv/bin/activate
+pip install -e .
+DATABASE_URL=sqlite:///./mni.db uvicorn app.main:app --reload --port 8000
+```
+SQLite path skips Alembic and creates tables via `Base.metadata.create_all`.
 
 Frontend:
 ```bash

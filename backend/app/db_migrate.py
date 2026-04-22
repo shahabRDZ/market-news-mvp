@@ -1,8 +1,8 @@
-"""Runtime migrations.
+"""Legacy runtime ALTERs for pre-Alembic SQLite databases.
 
-SQLAlchemy's create_all only creates missing tables. When we add columns to an
-existing table we need to ALTER. This module inspects the DB and applies any
-needed additive changes. Idempotent.
+Postgres setups use Alembic (see backend/alembic/). This helper stays in place
+so that developers with an older SQLite `mni.db` can keep booting without a
+manual migration step. It is a no-op on any non-SQLite backend.
 """
 from __future__ import annotations
 
@@ -14,13 +14,14 @@ from .db import engine
 
 log = logging.getLogger("migrate")
 
-# (table, column, SQL fragment after ADD COLUMN)
 REQUIRED_COLUMNS: list[tuple[str, str, str]] = [
     ("users", "last_seen_at", "DATETIME"),
 ]
 
 
 def run() -> None:
+    if engine.dialect.name != "sqlite":
+        return
     insp = inspect(engine)
     existing_tables = set(insp.get_table_names())
     with engine.begin() as conn:
