@@ -6,7 +6,7 @@ A SaaS-ready prototype that ingests financial news, scores sentiment, combines i
 
 - **Real news** via RSS (Reuters, CNBC, ForexLive, Investing, MarketWatch, CoinDesk, Yahoo, FXStreet) with zero API key. NewsAPI kicks in when `NEWSAPI_KEY` is set.
 - **Live crypto prices** every 5s via Coinbase/Binance WebSocket, with Yahoo Finance chart-endpoint fast-poll fallback when exchange WS is blocked.
-- Multi-asset coverage out of the box: EUR/USD, BTC/USD, ETH/USD, Gold.
+- Multi-asset coverage out of the box: EUR/USD, GBP/USD, USD/JPY, AUD/USD, BTC/USD, ETH/USD, SOL/USD, Gold, WTI Oil, S&P 500, Nasdaq 100, AAPL, TSLA, NVDA.
 - VADER + finance lexicon sentiment, RSI / MA / trend, blended probabilistic signal.
 - Aggregated **Market Mood** (Risk-On / Risk-Off / Mixed) across tracked assets.
 - **Economic calendar** with anticipation pressure score per upcoming event.
@@ -15,7 +15,7 @@ A SaaS-ready prototype that ingests financial news, scores sentiment, combines i
 - JWT user auth with bcrypt password hashing.
 - Plan tiers (Free / Pro / Premium / Team / API) with feature gating.
 - Hashed API keys with per-plan rate limits, surfaced via versioned `/v1` endpoints.
-- Optional Redis container via `docker compose --profile cache up` for the cache/pubsub upgrade path.
+- Redis container is part of the default compose stack (rate limiting + future pubsub). Set `REDIS_URL=""` to fall back to in-process counters.
 - **Advanced intelligence layer** (rule-based, swappable with ML later):
   - Pre-news stress via ATR compression + range tightening.
   - Liquidity zones via swing-point clustering.
@@ -115,6 +115,11 @@ npm run dev
 - `GET /v1/assets`
 - `GET /v1/news?asset=&limit=`
 - `GET /v1/signal?asset=`
+- `GET /v1/news.csv?asset=&limit=` — CSV download
+- `GET /v1/signals.csv?asset=&limit=` — historical signals CSV
+
+**API key audit (Bearer JWT):**
+- `GET /keys/{id}/events?limit=` — per-call log (ts, method, path, ip)
 
 ## Project layout
 
@@ -137,7 +142,9 @@ ml/               # pure algorithms, swappable for FinBERT / XGBoost later
 
 ## CI
 
-A GitHub Actions workflow is staged at `.github/workflows.example/ci.yml`. Run `gh auth refresh -h github.com -s workflow` once, then `git mv .github/workflows.example .github/workflows && git commit -am "enable CI" && git push`.
+GitHub Actions workflow at `.github/workflows/ci.yml` runs on push/PR to `main`:
+- Backend job spins up Postgres 16 service, installs the package, runs `alembic upgrade head`, then imports `app.main`.
+- Frontend job runs the Vite production build (which performs the typecheck).
 
 ## Accessibility
 

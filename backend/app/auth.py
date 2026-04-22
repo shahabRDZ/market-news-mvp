@@ -9,13 +9,13 @@ from typing import Optional
 
 import bcrypt
 import jwt
-from fastapi import Depends, Header, HTTPException, status
+from fastapi import Depends, Header, HTTPException, Request, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from .config import settings
 from .db import get_db
-from .models import ApiKey, User
+from .models import ApiKey, ApiKeyEvent, User
 
 
 def hash_password(password: str) -> str:
@@ -86,6 +86,7 @@ def verify_api_key_hash(full: str, stored_hash: str) -> bool:
 
 
 def api_key_user(
+    request: Request,
     x_api_key: str | None = Header(default=None, alias="X-API-Key"),
     db: Session = Depends(get_db),
 ) -> User:
@@ -100,10 +101,19 @@ def api_key_user(
             break
     if match is None:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid API key")
-    match.last_used_at = datetime.utcnow()
-    db.add(match)
-    db.commit()
     user = db.get(User, match.user_id)
     if user is None or not user.is_active:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "User not found")
+    match.last_used_at = datetime.utcnow()
+    db.add(match)
+    db.add(
+        ApiKeyEvent(
+            api_key_id=match.id,
+            user_id=user.id,
+            method=request.method,
+            path=request.url.path[:256],
+            ip=(request.client.host if request.client else None),
+        )
+    )
+    db.commit()
     return user

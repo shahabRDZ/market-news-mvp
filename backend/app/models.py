@@ -147,6 +147,21 @@ class ApiKey(Base):
     revoked: Mapped[bool] = mapped_column(Boolean, default=False)
 
     user = relationship("User", back_populates="api_keys")
+    events = relationship("ApiKeyEvent", back_populates="api_key", cascade="all, delete-orphan")
+
+
+class ApiKeyEvent(Base):
+    __tablename__ = "api_key_events"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    api_key_id: Mapped[int] = mapped_column(ForeignKey("api_keys.id"), index=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    ts: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, index=True)
+    method: Mapped[str] = mapped_column(String(8))
+    path: Mapped[str] = mapped_column(String(256))
+    ip: Mapped[str | None] = mapped_column(String(64), nullable=True)
+
+    api_key = relationship("ApiKey", back_populates="events")
 
 
 class WatchlistItem(Base):

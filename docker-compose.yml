@@ -16,6 +16,20 @@ services:
       timeout: 3s
       retries: 10
 
+  redis:
+    image: redis:7-alpine
+    container_name: mni_redis
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - mni_redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
   backend:
     build: ./backend
     container_name: mni_backend
@@ -25,11 +39,14 @@ services:
       - .env
     environment:
       - DATABASE_URL=postgresql://mni:mni@db:5432/mni
+      - REDIS_URL=redis://redis:6379/0
     volumes:
       - ./backend:/app
       - mni_data:/app/data
     depends_on:
       db:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     command: >
       sh -c "alembic upgrade head &&
@@ -48,17 +65,6 @@ services:
     command: npm run dev -- --host 0.0.0.0
     depends_on:
       - backend
-
-  # Optional cache / pubsub. Enable with: docker compose --profile cache up
-  redis:
-    image: redis:7-alpine
-    container_name: mni_redis
-    profiles: ["cache"]
-    ports:
-      - "6379:6379"
-    command: redis-server --appendonly yes
-    volumes:
-      - mni_redis:/data
 
 volumes:
   mni_data:

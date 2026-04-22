@@ -1,11 +1,11 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from ..auth import current_user, generate_api_key
 from ..db import get_db
-from ..models import ApiKey, User
+from ..models import ApiKey, ApiKeyEvent, User
 from ..services.plans import get_plan
 
 router = APIRouter(prefix="/keys", tags=["keys"])
@@ -81,3 +81,37 @@ def revoke_key(key_id: int, u: User = Depends(current_user), db: Session = Depen
     db.add(row)
     db.commit()
     return {"ok": True}
+
+
+class KeyEventOut(BaseModel):
+    ts: str
+    method: str
+    path: str
+    ip: str | None
+
+
+@router.get("/{key_id}/events", response_model=list[KeyEventOut])
+def key_events(
+    key_id: int,
+    limit: int = Query(100, le=500),
+    u: User = Depends(current_user),
+    db: Session = Depends(get_db),
+) -> list[KeyEventOut]:
+    row = db.get(ApiKey, key_id)
+    if row is None or row.user_id != u.id:
+        raise HTTPException(404, "Key not found")
+    events = db.execute(
+        select(ApiKeyEvent)
+        .where(ApiKeyEvent.api_key_id == key_id)
+        .order_by(ApiKeyEvent.ts.desc())
+        .limit(limit)
+    ).scalars().all()
+    return [
+        KeyEventOut(
+            ts=e.ts.isoformat() + "Z",
+            method=e.method,
+            path=e.path,
+            ip=e.ip,
+        )
+        for e in events
+    ]

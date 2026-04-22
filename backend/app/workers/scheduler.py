@@ -132,7 +132,13 @@ async def job_fetch_market(asset_symbol: str = "EURUSD") -> None:
             await broadcaster.publish({"type": "signal.updated", "asset": asset_symbol, "payload": payload})
 
 
-TRACKED_ASSETS = ["EURUSD", "BTCUSD", "ETHUSD", "XAUUSD"]
+TRACKED_ASSETS = [
+    "EURUSD", "GBPUSD", "USDJPY", "AUDUSD",
+    "BTCUSD", "ETHUSD", "SOLUSD",
+    "XAUUSD", "WTIUSD",
+    "SPX500", "US100",
+    "AAPL", "TSLA", "NVDA",
+]
 
 
 async def job_fetch_news_all() -> None:

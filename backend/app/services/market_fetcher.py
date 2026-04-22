@@ -11,10 +11,25 @@ from sqlalchemy.orm import Session
 from ..models import Asset, Candle
 
 SYMBOL_MAP = {
+    # FX
     "EURUSD": "EURUSD=X",
+    "GBPUSD": "GBPUSD=X",
+    "USDJPY": "JPY=X",
+    "AUDUSD": "AUDUSD=X",
+    # Crypto
     "BTCUSD": "BTC-USD",
     "ETHUSD": "ETH-USD",
+    "SOLUSD": "SOL-USD",
+    # Commodities
     "XAUUSD": "GC=F",
+    "WTIUSD": "CL=F",
+    # Indices
+    "SPX500": "^GSPC",
+    "US100": "^NDX",
+    # Equities
+    "AAPL": "AAPL",
+    "TSLA": "TSLA",
+    "NVDA": "NVDA",
 }
 
 

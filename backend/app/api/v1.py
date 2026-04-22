@@ -1,6 +1,10 @@
 from __future__ import annotations
 
+import csv
+import io
+
 from fastapi import APIRouter, Depends, HTTPException, Query, Response
+from fastapi.responses import PlainTextResponse
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -94,3 +98,75 @@ def get_signal(
         impact_strength=row.impact_strength,
         reason=row.reason,
     )
+
+
+def _csv_response(headers: list[str], rows: list[list]) -> PlainTextResponse:
+    buf = io.StringIO()
+    w = csv.writer(buf)
+    w.writerow(headers)
+    w.writerows(rows)
+    return PlainTextResponse(buf.getvalue(), media_type="text/csv; charset=utf-8")
+
+
+@router.get("/news.csv")
+def get_news_csv(
+    response: Response,
+    asset: str = Query("EURUSD"),
+    limit: int = Query(100, le=1000),
+    user: User = Depends(api_key_user),
+    db: Session = Depends(get_db),
+) -> PlainTextResponse:
+    _check_rate(response, user)
+    a = db.execute(select(Asset).where(Asset.symbol == asset)).scalar_one_or_none()
+    if a is None:
+        return _csv_response(["id", "source", "title", "url", "published_at", "sentiment", "impact"], [])
+    rows = db.execute(
+        select(News).where(News.asset_id == a.id).order_by(News.published_at.desc()).limit(limit)
+    ).scalars().all()
+    body = [
+        [r.id, r.source, r.title, r.url, r.published_at.isoformat() + "Z", r.sentiment, r.impact]
+        for r in rows
+    ]
+    out = _csv_response(
+        ["id", "source", "title", "url", "published_at", "sentiment", "impact"], body
+    )
+    out.headers["Content-Disposition"] = f'attachment; filename="news_{asset}.csv"'
+    for h in ("X-RateLimit-Limit", "X-RateLimit-Remaining", "X-RateLimit-Reset"):
+        if h in response.headers:
+            out.headers[h] = response.headers[h]
+    return out
+
+
+@router.get("/signals.csv")
+def get_signals_csv(
+    response: Response,
+    asset: str = Query("EURUSD"),
+    limit: int = Query(500, le=5000),
+    user: User = Depends(api_key_user),
+    db: Session = Depends(get_db),
+) -> PlainTextResponse:
+    _check_rate(response, user)
+    a = db.execute(select(Asset).where(Asset.symbol == asset)).scalar_one_or_none()
+    headers = [
+        "ts", "direction", "prob_up", "prob_down", "prob_neutral",
+        "sentiment_score", "technical_score", "impact_strength", "reason",
+    ]
+    if a is None:
+        return _csv_response(headers, [])
+    rows = db.execute(
+        select(Signal).where(Signal.asset_id == a.id).order_by(Signal.ts.desc()).limit(limit)
+    ).scalars().all()
+    body = [
+        [
+            r.ts.isoformat() + "Z", r.direction,
+            r.prob_up, r.prob_down, r.prob_neutral,
+            r.sentiment_score, r.technical_score, r.impact_strength, r.reason,
+        ]
+        for r in rows
+    ]
+    out = _csv_response(headers, body)
+    out.headers["Content-Disposition"] = f'attachment; filename="signals_{asset}.csv"'
+    for h in ("X-RateLimit-Limit", "X-RateLimit-Remaining", "X-RateLimit-Reset"):
+        if h in response.headers:
+            out.headers[h] = response.headers[h]
+    return out

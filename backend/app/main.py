@@ -24,9 +24,19 @@ def _seed_assets() -> None:
     with SessionLocal() as db:
         defaults = [
             ("EURUSD", "EUR/USD"),
+            ("GBPUSD", "GBP/USD"),
+            ("USDJPY", "USD/JPY"),
+            ("AUDUSD", "AUD/USD"),
             ("BTCUSD", "Bitcoin / USD"),
             ("ETHUSD", "Ethereum / USD"),
+            ("SOLUSD", "Solana / USD"),
             ("XAUUSD", "Gold / USD"),
+            ("WTIUSD", "WTI Crude Oil / USD"),
+            ("SPX500", "S&P 500"),
+            ("US100", "Nasdaq 100"),
+            ("AAPL", "Apple"),
+            ("TSLA", "Tesla"),
+            ("NVDA", "NVIDIA"),
         ]
         for sym, name in defaults:
             existing = db.execute(select(Asset).where(Asset.symbol == sym)).scalar_one_or_none()

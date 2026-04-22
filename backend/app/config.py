@@ -3,6 +3,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
     DATABASE_URL: str = "sqlite:///./mni.db"
+    REDIS_URL: str = ""
     NEWSAPI_KEY: str = ""
     MOCK_MODE: str = "auto"
     POLL_NEWS_SECONDS: int = 60
