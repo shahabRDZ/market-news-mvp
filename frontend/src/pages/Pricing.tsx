@@ -14,28 +14,46 @@ type Plan = {
   llm_explanations: boolean;
 };
 
+type PlansResponse = { plans: Plan[]; stripe_enabled: boolean };
+
 const HIGHLIGHT = "premium";
 
 export function Pricing() {
   const { token, user, refresh } = useAuth();
   const [plans, setPlans] = useState<Plan[]>([]);
+  const [stripeEnabled, setStripeEnabled] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
+  const [err, setErr] = useState<string | null>(null);
 
   useEffect(() => {
-    api<{ plans: Plan[] }>("/billing/plans", null)
-      .then((d) => setPlans(d.plans))
+    api<PlansResponse>("/billing/plans", null)
+      .then((d) => {
+        setPlans(d.plans);
+        setStripeEnabled(d.stripe_enabled);
+      })
       .catch(() => setPlans([]));
   }, []);
 
-  const select = async (planKey: string) => {
+  const choose = async (planKey: string) => {
     if (!token) return;
+    setErr(null);
     setBusy(planKey);
     try {
+      if (stripeEnabled && planKey !== "free") {
+        const { url } = await api<{ url: string }>("/billing/checkout", token, {
+          method: "POST",
+          body: JSON.stringify({ plan: planKey }),
+        });
+        window.location.href = url;
+        return;
+      }
       await api<{ plan: string }>("/billing/select", token, {
         method: "POST",
         body: JSON.stringify({ plan: planKey }),
       });
       await refresh();
+    } catch (e: any) {
+      setErr(e?.message || "Could not switch plan");
     } finally {
       setBusy(null);
     }
@@ -47,6 +65,7 @@ export function Pricing() {
         <h1 className="text-3xl md:text-4xl font-semibold tracking-tight">Simple pricing</h1>
         <p className="text-text_secondary mt-2">Start free. Upgrade when the answer needs to be faster.</p>
       </div>
+      {err && <div className="text-down text-sm text-center mb-4">{err}</div>}
       <div className="grid md:grid-cols-3 lg:grid-cols-5 gap-4">
         {plans.map((p) => {
           const isCurrent = user?.plan === p.key;
@@ -84,13 +103,17 @@ export function Pricing() {
                     <div className="text-xs text-up text-center py-2">Current plan</div>
                   ) : (
                     <button
-                      onClick={() => select(p.key)}
+                      onClick={() => choose(p.key)}
                       disabled={busy === p.key}
                       className={`w-full rounded-md py-2 text-sm font-medium ${
                         highlight ? "bg-brand text-canvas" : "bg-raised text-text_primary"
                       } hover:brightness-110 disabled:opacity-60`}
                     >
-                      {busy === p.key ? "Switching..." : "Choose plan"}
+                      {busy === p.key
+                        ? "Working..."
+                        : stripeEnabled && p.key !== "free"
+                          ? "Subscribe"
+                          : "Choose plan"}
                     </button>
                   )
                 ) : (
@@ -109,8 +132,9 @@ export function Pricing() {
         })}
       </div>
       <p className="text-text_muted text-xs text-center mt-10 max-w-2xl mx-auto">
-        MVP mode: plan changes take effect immediately without a real payment. Stripe checkout is
-        wired at the billing layer but not enabled for local development.
+        {stripeEnabled
+          ? "Paid plans use Stripe Checkout. You can cancel anytime from your Account page."
+          : "MVP mode: plan changes take effect immediately without a real payment. Configure STRIPE_SECRET_KEY on the backend to enable real billing."}
       </p>
     </main>
   );

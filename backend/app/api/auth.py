@@ -29,6 +29,7 @@ class UserResponse(BaseModel):
     id: int
     email: str
     plan: str
+    has_subscription: bool = False
 
 
 @router.post("/register", response_model=AuthResponse)
@@ -57,4 +58,9 @@ def login(body: LoginPayload, db: Session = Depends(get_db)) -> AuthResponse:
 
 @router.get("/me", response_model=UserResponse)
 def me(u: User = Depends(current_user)) -> UserResponse:
-    return UserResponse(id=u.id, email=u.email, plan=u.plan)
+    return UserResponse(
+        id=u.id,
+        email=u.email,
+        plan=u.plan,
+        has_subscription=bool(u.stripe_subscription_id),
+    )

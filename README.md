@@ -94,10 +94,25 @@ npm run dev
 2. Add env var `VITE_API_URL=https://<your-render-backend>.onrender.com`.
 3. Deploy. `vercel.json` rewrites all paths to `index.html` for the SPA.
 
+## Stripe billing
+
+Real payments are wired through Stripe Checkout + Billing Portal. If `STRIPE_SECRET_KEY` is unset, the app falls back to dev-mode plan switching (instant, no payment).
+
+**Setup:**
+1. In Stripe Dashboard create one **recurring Price** per paid plan (Pro / Premium / Team / API). Copy each `price_...` ID.
+2. Set backend env vars: `STRIPE_SECRET_KEY`, `STRIPE_PRICE_PRO`, `STRIPE_PRICE_PREMIUM`, `STRIPE_PRICE_TEAM`, `STRIPE_PRICE_API`, plus `BILLING_SUCCESS_URL` and `BILLING_CANCEL_URL` pointing at your frontend.
+3. Add a webhook endpoint at `https://<backend>/billing/webhook` listening to: `checkout.session.completed`, `customer.subscription.created`, `customer.subscription.updated`, `customer.subscription.deleted`. Copy the signing secret into `STRIPE_WEBHOOK_SECRET`.
+4. Local testing: `stripe listen --forward-to localhost:8000/billing/webhook`.
+
+**Endpoints:**
+- `POST /billing/checkout` — body `{plan}`, returns `{url}` to redirect into Stripe Checkout.
+- `POST /billing/portal` — returns `{url}` to redirect into Stripe Billing Portal.
+- `POST /billing/webhook` — Stripe → updates `users.plan` based on subscription state.
+
 ## Try the SaaS flow
 
 1. Register at `/register`.
-2. Open `/pricing` and switch to Pro or Premium (MVP mode applies instantly without payment).
+2. Open `/pricing` and pick a plan (Stripe Checkout when configured, otherwise instant dev-mode switch).
 3. Open `/account`, create an API key.
 4. Call the public API:
    ```bash

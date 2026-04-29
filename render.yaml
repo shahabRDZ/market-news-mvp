@@ -41,3 +41,19 @@ services:
         value: "60"
       - key: NEWSAPI_KEY
         sync: false
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+      - key: STRIPE_PRICE_PRO
+        sync: false
+      - key: STRIPE_PRICE_PREMIUM
+        sync: false
+      - key: STRIPE_PRICE_TEAM
+        sync: false
+      - key: STRIPE_PRICE_API
+        sync: false
+      - key: BILLING_SUCCESS_URL
+        sync: false
+      - key: BILLING_CANCEL_URL
+        sync: false

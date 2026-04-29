@@ -3,7 +3,7 @@ import { createContext, useCallback, useContext, useEffect, useState, type React
 const BASE = import.meta.env.VITE_API_URL || "http://localhost:8000";
 const TOKEN_KEY = "mni.token";
 
-export type AuthUser = { id: number; email: string; plan: string };
+export type AuthUser = { id: number; email: string; plan: string; has_subscription?: boolean };
 
 type AuthContextShape = {
   user: AuthUser | null;

@@ -16,6 +16,8 @@ log = logging.getLogger("migrate")
 
 REQUIRED_COLUMNS: list[tuple[str, str, str]] = [
     ("users", "last_seen_at", "DATETIME"),
+    ("users", "stripe_customer_id", "VARCHAR(64)"),
+    ("users", "stripe_subscription_id", "VARCHAR(64)"),
 ]
 
 

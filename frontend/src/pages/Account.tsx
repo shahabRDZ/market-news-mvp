@@ -67,12 +67,29 @@ export function Account() {
             <div className="text-text_secondary text-xs mb-1">Current plan</div>
             <div className="text-xl font-semibold capitalize">{user?.plan}</div>
           </div>
-          <Link
-            to="/pricing"
-            className="bg-brand text-canvas rounded-md px-4 py-2 text-sm font-medium hover:brightness-110"
-          >
-            Change plan
-          </Link>
+          <div className="flex gap-2">
+            {user?.has_subscription && (
+              <button
+                onClick={async () => {
+                  try {
+                    const { url } = await api<{ url: string }>("/billing/portal", token, { method: "POST" });
+                    window.location.href = url;
+                  } catch (e: any) {
+                    setErr(e?.message || "Could not open billing portal");
+                  }
+                }}
+                className="bg-raised text-text_primary rounded-md px-4 py-2 text-sm font-medium hover:brightness-110"
+              >
+                Manage subscription
+              </button>
+            )}
+            <Link
+              to="/pricing"
+              className="bg-brand text-canvas rounded-md px-4 py-2 text-sm font-medium hover:brightness-110"
+            >
+              Change plan
+            </Link>
+          </div>
         </div>
       </section>
 

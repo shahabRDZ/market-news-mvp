@@ -95,6 +95,8 @@ class User(Base):
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     last_seen_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    stripe_customer_id: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
+    stripe_subscription_id: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
 
     api_keys = relationship("ApiKey", back_populates="user", cascade="all, delete-orphan")
     watchlist = relationship("WatchlistItem", back_populates="user", cascade="all, delete-orphan")
