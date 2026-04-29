@@ -80,6 +80,20 @@ echo "VITE_API_URL=http://localhost:8000" > .env.local
 npm run dev
 ```
 
+## Deploy
+
+**Backend → Render** (via `render.yaml` Blueprint):
+1. Push to GitHub.
+2. In Render: New → Blueprint → pick this repo. It provisions Postgres, Redis, and the backend web service.
+3. Set `ALLOWED_ORIGINS` to your Vercel URL (e.g. `https://mni.vercel.app`). `ALLOWED_ORIGIN_REGEX` already permits `*.vercel.app` previews.
+4. Optional: set `NEWSAPI_KEY`. `JWT_SECRET` is auto-generated.
+5. Migrations run on container start (`alembic upgrade head`).
+
+**Frontend → Vercel**:
+1. Import the repo, set **Root Directory** to `frontend`.
+2. Add env var `VITE_API_URL=https://<your-render-backend>.onrender.com`.
+3. Deploy. `vercel.json` rewrites all paths to `index.html` for the SPA.
+
 ## Try the SaaS flow
 
 1. Register at `/register`.
